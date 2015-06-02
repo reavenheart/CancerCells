@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="bistriapi">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../bistri/bistriapi.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
