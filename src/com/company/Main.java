@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class Main {
 
     public static void main(String[] args) {
-        File input = new File("assets/quick04.bmp");
+        File input = new File("assets/quick.bmp");
         //File input = new File("assets/example01.jpg");
         //File input2 = new File("assets/result2.jpg");
         try {

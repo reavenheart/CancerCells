@@ -1,5 +1,6 @@
 package com.company;
 
+import com.company.Voronoi.Voronoi;
 import javafx.scene.shape.Circle;
 
 import javax.imageio.ImageIO;
@@ -49,12 +50,13 @@ public class Recognition {
         int MinHue = FindMinHue(temp);
         //temp2 = new Median().countMedian(temp2, 3);
         //CountGauss(5, 3, matrixR);
-        temp2 = new Binarization().countBinarization(temp, MinHue+1);
+        temp2 = new Binarization().countBinarization(temp, MinHue+10);
         countRecognition(temp2);
         optimizeObjects();
         countArea();
         findCenters();
         OuterBoundaries = objects;
+        /*
         temp3 = showRecognitionResult(temp2);
         File output = new File("assets/tmp00-1.jpg");
         try {
@@ -62,6 +64,7 @@ public class Recognition {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        */
 
         //int hue = 0;
         //for (int i = MaxHue - ((MinHue)*100/MaxHue/2); i > MinHue+10; i -= 10)
@@ -71,12 +74,14 @@ public class Recognition {
 
             temp2 = new Binarization().countBinarization(temp, i);
             temp2 = new MathMorphology().useMorphology(temp2);
+            /*
             output = new File("assets/result-red.jpg");
             try {
                 ImageIO.write(temp2, "jpg", output);
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            */
             //drawBoundaries(Boundaries);
             countRecognition(temp2);
             optimizeObjects();
@@ -100,189 +105,7 @@ public class Recognition {
                 for (int j = 0; j < objects.size(); j++) {
                     if (objects.get(j).getArea() > averageArea) {
 
-                        counter = 0;
-                        innerObjects = new ArrayList<>();
-                        for (int k = 0; k < oldObjects.size(); k++) {
-                            Point p1 = null;
-                            for (Point point : objects.get(j).getPoints()) {
-                                if (point.getX() == oldObjects.get(k).getCenter().getX() && point.getY() > oldObjects.get(k).getCenter().getY()) {
-                                    p1 = point;
-                                    break;
-                                }
-                            }
-
-                            Point p2 = null;
-                            for (Point point : objects.get(j).getPoints()) {
-                                if (point.getX() == oldObjects.get(k).getCenter().getX() && point.getY() < oldObjects.get(k).getCenter().getY()) {
-                                    p2 = point;
-                                    break;
-                                }
-                            }
-
-                            if (p1 != null && p2 != null) {
-                                if (oldObjects.get(k).getCenter().getY() < p1.getY() && oldObjects.get(k).getCenter().getY() > p2.getY()) {
-                                    p1 = null;
-                                    for (Point point : objects.get(j).getPoints()) {
-                                        if (point.getY() == oldObjects.get(k).getCenter().getY() && point.getX() > oldObjects.get(k).getCenter().getX()) {
-                                            p1 = point;
-                                            break;
-                                        }
-                                    }
-
-                                    p2 = null;
-                                    for (Point point : objects.get(j).getPoints()) {
-                                        if (point.getY() == oldObjects.get(k).getCenter().getY() && point.getX() < oldObjects.get(k).getCenter().getX()) {
-                                            p2 = point;
-                                            break;
-                                        }
-                                    }
-
-                                    if (p1 != p2) {
-                                        counter++;
-                                        innerObjects.add(oldObjects.get(k));
-                                    }
-                                }
-                            }
-                        }
-
-                        if (counter > 1) {
-                            sortByX(innerObjects);
-
-                            float angle = 0;
-                            float percent1, percent2 = 0;
-
-                            Point center = new Point();
-
-                            for (int f = 0; f < innerObjects.size() - 1; f++) {
-
-                                if (innerObjects.get(f).getArea() < averageArea * 0.3) {
-                                    innerObjects.remove(f);
-                                } else {
-                                    center.setX(innerObjects.get(f + 1).getCenter().getX() - (innerObjects.get(f + 1).getCenter().getX() - innerObjects.get(f).getCenter().getX()) / 2);
-                                    center.setY(innerObjects.get(f + 1).getCenter().getY() - (innerObjects.get(f + 1).getCenter().getY() - innerObjects.get(f).getCenter().getY()) / 2);
-
-
-                                    percent1 = innerObjects.get(f).getArea() / (innerObjects.get(f).getArea() + innerObjects.get(f + 1).getArea());
-                                    percent2 = innerObjects.get(f + 1).getArea() / (innerObjects.get(f).getArea() + innerObjects.get(f + 1).getArea());
-
-                                    float a, b;
-
-                                    a = innerObjects.get(f + 1).getCenter().getX() - innerObjects.get(f).getCenter().getX();
-                                    b = innerObjects.get(f + 1).getCenter().getY() - innerObjects.get(f).getCenter().getY();
-
-                                    float vectorLength = (float) Math.sqrt(a * a + b * b);
-
-                                    float directionX = a / vectorLength;
-                                    float directionY = b / vectorLength;
-
-                                    center.setX((int) (innerObjects.get(f).getCenter().getX() + directionX * vectorLength * percent1));
-                                    center.setY((int) (innerObjects.get(f).getCenter().getY() + directionY * vectorLength * percent1));
-
-
-                                    boolean isFound = false;
-
-                                    double mistake = 2;
-
-                                    a = center.getX();
-                                    b = center.getY();
-
-                                    angle = 90;
-
-                                    float tmpX = directionX;
-                                    float tmpY = directionY;
-
-                                    directionX = (float) (tmpX * Math.cos(Math.toRadians(angle)) - tmpY * Math.sin(Math.toRadians(angle)));
-                                    directionY = (float) (tmpX * Math.sin(Math.toRadians(angle)) + tmpY * Math.cos(Math.toRadians(angle)));
-
-                                    paintToBlack(temp2, (int) a, (int) b);
-                                    while (!isFound) {
-                                        a += directionX;
-                                        b += directionY;
-                                        paintToBlack(temp2, (int) a, (int) b);
-                                /*
-                                for (int t = 0; t < objects.get(j).getPoints().size(); t++) {
-                                    if (a >= objects.get(j).getPoints().get(t).getX() - mistake &&
-                                            a <= objects.get(j).getPoints().get(t).getX() + mistake)
-                                        if (b >= objects.get(j).getPoints().get(t).getY() - mistake &&
-                                                b <= objects.get(j).getPoints().get(t).getY() + mistake) {
-                                            a = objects.get(j).getPoints().get(t).getX();
-                                            b = objects.get(j).getPoints().get(t).getY();
-                                            paintToBlack(temp2, (int) a, (int) b);
-
-                                            isFound = true;
-                                            break;
-                                        }
-                                    if (a > width || b > height || a < 0 || b < 0) {
-                                        isFound = true;
-                                        break;
-                                    }
-                                }
-                                if (isFound)
-                                    break;
-                                    */
-                                        for (int n = 0; n < OuterBoundaries.size(); n++) {
-                                            for (int t = 0; t < OuterBoundaries.get(n).getPoints().size(); t++) {
-                                                if (a >= OuterBoundaries.get(n).getPoints().get(t).getX() - mistake &&
-                                                        a <= OuterBoundaries.get(n).getPoints().get(t).getX() + mistake)
-                                                    if (b >= OuterBoundaries.get(n).getPoints().get(t).getY() - mistake &&
-                                                            b <= OuterBoundaries.get(n).getPoints().get(t).getY() + mistake) {
-                                                        a = OuterBoundaries.get(n).getPoints().get(t).getX();
-                                                        b = OuterBoundaries.get(n).getPoints().get(t).getY();
-                                                        paintToBlack(temp2, (int) a, (int) b);
-
-                                                        isFound = true;
-                                                        break;
-                                                    }
-                                                if (a > width || b > height || a < 0 || b < 0) {
-                                                    isFound = true;
-                                                    break;
-                                                }
-                                            }
-                                            if (isFound)
-                                                break;
-                                        }
-                                    }
-
-                                    isFound = false;
-
-                                    a = center.getX();
-                                    b = center.getY();
-
-                                    angle = 180;
-
-                                    directionX = (float) (directionX * Math.cos(Math.toRadians(angle)) - directionY * Math.sin(Math.toRadians(angle)));
-                                    directionY = (float) (directionX * Math.sin(Math.toRadians(angle)) + directionY * Math.cos(Math.toRadians(angle)));
-
-                                    paintToBlack(temp2, (int) a, (int) b);
-                                    while (!isFound) {
-                                        a += directionX;
-                                        b += directionY;
-                                        paintToBlack(temp2, (int) a, (int) b);
-                                        for (int n = 0; n < OuterBoundaries.size(); n++) {
-                                            for (int t = 0; t < OuterBoundaries.get(n).getPoints().size(); t++) {
-                                                if (a >= OuterBoundaries.get(n).getPoints().get(t).getX() - mistake &&
-                                                        a <= OuterBoundaries.get(n).getPoints().get(t).getX() + mistake)
-                                                    if (b >= OuterBoundaries.get(n).getPoints().get(t).getY() - mistake &&
-                                                            b <= OuterBoundaries.get(n).getPoints().get(t).getY() + mistake) {
-                                                        a = OuterBoundaries.get(n).getPoints().get(t).getX();
-                                                        b = OuterBoundaries.get(n).getPoints().get(t).getY();
-                                                        paintToBlack(temp2, (int) a, (int) b);
-
-                                                        isFound = true;
-                                                        break;
-                                                    }
-                                                if (a > width || b > height || a < 0 || b < 0) {
-                                                    isFound = true;
-                                                    break;
-                                                }
-                                            }
-                                            if (isFound)
-                                                break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        countVoronoi(temp2, averageArea);
 
                     }
                     else {
@@ -297,7 +120,7 @@ public class Recognition {
             if (oldObjects.size() > 0)
             {
                 countRecognition(temp2);
-                //optimizeObjects();
+                optimizeObjects();
                 countArea();
                 findCenters();
             }
@@ -305,22 +128,38 @@ public class Recognition {
 
             oldObjects = objects;
 
-            output = new File("assets/tmp02.jpg");
-            try {
-                ImageIO.write(showRecognitionResult(temp2), "jpg", output);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+
+
         }
         //ShowRecognizion(true, false, false);
         //ShowCenters(true, false, false);
 
         BufferedImage result = showRecognitionResult(image);
 
+        File output = new File("assets/tmp02.jpg");
+        try {
+            ImageIO.write(result, "jpg", output);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         return result;
 
         //return objects;
 
+    }
+
+    private void countVoronoi(BufferedImage temp2, float averageArea) {
+        ArrayList<Point> centers = new ArrayList<>();
+
+        //optimizeOldObjects();
+        for (CellObject obj : oldObjects) {
+            if (obj.getArea() > averageArea * 0.3)
+                centers.add(obj.getCenter());
+        }
+
+        if (centers.size() > 0)
+            new Voronoi().countVoronoi(centers, width, height, temp2);
     }
 
     private BufferedImage showRecognitionResult(BufferedImage image) {
@@ -431,6 +270,17 @@ public class Recognition {
             if (objects.get(i).getPoints().size() < 40)
             {
                 objects.remove(objects.get(i));
+                i--;
+            }
+        }
+    }
+
+    private void optimizeOldObjects() {
+        for (int i = 0; i < oldObjects.size(); i++)
+        {
+            if (oldObjects.get(i).getPoints().size() < 120)
+            {
+                oldObjects.remove(oldObjects.get(i));
                 i--;
             }
         }
