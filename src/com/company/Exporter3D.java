@@ -8,7 +8,7 @@ import java.util.ArrayList;
  */
 public class Exporter3D {
 
-    private int numberOfEdges = 12;
+    private int numberOfEdges = 24;
 
     private int zEdges;
 
@@ -50,8 +50,11 @@ public class Exporter3D {
 
             isFound = false;
 
+
             for (int edge = 0; edge < zEdges; edge++) {
                 if (edge == 0) {
+
+                    boolean isFound2 = false;
 
                     for (int i = 0; i < numberOfEdges; i++) {
 
@@ -65,8 +68,8 @@ public class Exporter3D {
                         float pX = point.getX();
                         float pY = point.getY();
 
-                        // могут найтись не все. Получу потом OutOfBoundariesArray
-                        while (!isFound && (point.getX() < width && point.getX() > 0) && (point.getY() < height && point.getY() > 0)) {
+                        // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅ. пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ OutOfBoundariesArray
+                        while (!isFound2 && (point.getX() < width && point.getX() > 0) && (point.getY() < height && point.getY() > 0)) {
 
                             pX += directionVector2[0];
                             pY += directionVector2[1];
@@ -77,16 +80,17 @@ public class Exporter3D {
                             for (Point p : cell.getPoints()) {
                                 if (p.getX() - 1 <= point.getX() && p.getY() - 1 <= point.getY() &&
                                         p.getX() + 1 >= point.getX() && p.getY() + 1 >= point.getY()) {
-                                    isFound = true;
+                                    isFound2 = true;
                                     break;
                                 }
                             }
                         }
 
-                        if (isFound) {
+                        if (isFound2) {
                             SimpleVertex3D vertex = new SimpleVertex3D();
 
-                            aproxRadius = (aproxRadius + (float) Math.sqrt(point.getX() * point.getX() + point.getY() * point.getY())) / (i + 1);
+                            aproxRadius += (float) Math.sqrt((center.getX() - point.getX()) * (center.getX() - point.getX())
+                                    + (center.getY() - point.getY()) * (center.getY() - point.getY()));
 
                             vertex.x = point.getX();
                             vertex.y = point.getY();
@@ -96,23 +100,37 @@ public class Exporter3D {
                             lastIndex = vertex.index;
 
                             cell3D.cellVerticies.add(vertex);
+                            isFound2 = false;
+
+                            //if (i == numberOfEdges)
+                                //isFound = true;
                         } else
                             break;
                     }
 
-                    if (!isFound)
-                        break;
+                    aproxRadius /= numberOfEdges;
+                    //if (!isFound)
+                       // break;
                 } else if (edge < zEdges - 1) {
                     float scale1 = (float) (edge) / zEdges;
-                    float scale2 = (float) (edge) / zEdges;
 
-                    scale2 = (float) Math.sqrt(1 - (scale1 - 1) * (scale1 - 1));
+                    float scale2 = (float) Math.sqrt(1 - (scale1 - 1) * (scale1 - 1));
+
+                    float scale3 = (float) -Math.sqrt(1 - scale1 * scale1) + 1;
+
+                    //scale3 *= aproxRadius;
 
                     edgePos = scale2 * aproxRadius;
 
                     ArrayList<SimpleVertex3D> tempArray = new ArrayList<>();
 
-                    for (int k = 0; k < cell3D.cellVerticies.size(); k++) {
+                    int k = 0;
+                    if (cell3D.cellVerticies.size() == numberOfEdges)
+                        k = 0;
+                    else
+                        k = numberOfEdges * (edge - 1);
+
+                    for (; k < cell3D.cellVerticies.size(); k++) {
                         SimpleVertex3D vertex = new SimpleVertex3D();
                         vertex.x = cell3D.cellVerticies.get(k).x;
                         vertex.y = cell3D.cellVerticies.get(k).y;
@@ -123,8 +141,8 @@ public class Exporter3D {
 
                     for (SimpleVertex3D vertex : tempArray) {
 
-                        vertex.x = vertex.x - (vertex.x - center.getX()) * scale1;
-                        vertex.y = vertex.y - (vertex.y - center.getY()) * scale1;
+                        vertex.x = vertex.x - (vertex.x - center.getX()) * (scale3);
+                        vertex.y = vertex.y - (vertex.y - center.getY()) * (scale3);
                         vertex.z = edgePos;
 
                         vertex.index = cell3D.giveVertexIndex();
@@ -132,6 +150,7 @@ public class Exporter3D {
 
                         cell3D.cellVerticies.add(vertex);
                     }
+
                 } else {
                     SimpleVertex3D vertex = new SimpleVertex3D();
 
@@ -145,6 +164,8 @@ public class Exporter3D {
                     cell3D.cellVerticies.add(vertex);
                 }
 
+                if (cell3D.cellVerticies.size() == numberOfEdges * (zEdges - 1) + 1)
+                    isFound = true;
             }
 
             if (isFound) {
@@ -208,49 +229,51 @@ public class Exporter3D {
                 }
 
                 for (int i = 0; i < cell3D.cellVerticies.size() - numberOfEdges - 1; i += numberOfEdges) {
-                    for (int j = 0; j < numberOfEdges; j++) {
-                        SimplePolygon3D polygon = new SimplePolygon3D();
+                    if (numberOfEdges - 1 + vertSize < cell3D.cellVerticies.size()) {
+                        for (int j = 0; j < numberOfEdges; j++) {
+                            SimplePolygon3D polygon = new SimplePolygon3D();
 
-                        if (i == 0) {
-                            if (j < numberOfEdges - 1) {
+                            if (i == 0) {
+                                if (j < numberOfEdges - 1) {
 
-                                polygon.v1 = cell3D.cellVerticies.get(i + vertSize + j);
-                                polygon.v2 = cell3D.cellVerticies.get(i + j);
-                                polygon.v3 = cell3D.cellVerticies.get(i + j + 1);
-                                polygon.v4 = cell3D.cellVerticies.get(i + vertSize + j + 1);
+                                    polygon.v1 = cell3D.cellVerticies.get(i + vertSize + j);
+                                    polygon.v2 = cell3D.cellVerticies.get(i + j);
+                                    polygon.v3 = cell3D.cellVerticies.get(i + j + 1);
+                                    polygon.v4 = cell3D.cellVerticies.get(i + vertSize + j + 1);
 
+                                } else {
+
+                                    polygon.v1 = cell3D.cellVerticies.get(i + vertSize + j);
+                                    polygon.v2 = cell3D.cellVerticies.get(i + j);
+                                    polygon.v3 = cell3D.cellVerticies.get(i);
+                                    polygon.v4 = cell3D.cellVerticies.get(i + vertSize);
+
+                                }
                             } else {
+                                if (j < numberOfEdges - 1) {
 
-                                polygon.v1 = cell3D.cellVerticies.get(i + vertSize + j);
-                                polygon.v2 = cell3D.cellVerticies.get(i + j);
-                                polygon.v3 = cell3D.cellVerticies.get(i);
-                                polygon.v4 = cell3D.cellVerticies.get(i + vertSize);
+                                    polygon.v1 = cell3D.cellVerticies.get(i + numberOfEdges + j);
+                                    polygon.v2 = cell3D.cellVerticies.get(i + j);
+                                    polygon.v3 = cell3D.cellVerticies.get(i + j + 1);
+                                    polygon.v4 = cell3D.cellVerticies.get(i + numberOfEdges + j + 1);
 
+                                } else {
+
+                                    polygon.v1 = cell3D.cellVerticies.get(i + numberOfEdges + j);
+                                    polygon.v2 = cell3D.cellVerticies.get(i + j);
+                                    polygon.v3 = cell3D.cellVerticies.get(i);
+                                    polygon.v4 = cell3D.cellVerticies.get(i + numberOfEdges);
+
+                                }
                             }
-                        } else {
-                            if (j < numberOfEdges - 1) {
 
-                                polygon.v1 = cell3D.cellVerticies.get(i + numberOfEdges + j);
-                                polygon.v2 = cell3D.cellVerticies.get(i + j);
-                                polygon.v3 = cell3D.cellVerticies.get(i + j + 1);
-                                polygon.v4 = cell3D.cellVerticies.get(i + numberOfEdges + j + 1);
+                            polygon.countNormal();
 
-                            } else {
-
-                                polygon.v1 = cell3D.cellVerticies.get(i + numberOfEdges + j);
-                                polygon.v2 = cell3D.cellVerticies.get(i + j);
-                                polygon.v3 = cell3D.cellVerticies.get(i);
-                                polygon.v4 = cell3D.cellVerticies.get(i + numberOfEdges);
-
-                            }
+                            cell3D.cellPolygons.add(polygon);
                         }
-
-                        polygon.countNormal();
-
-                        cell3D.cellPolygons.add(polygon);
+                        if (i == 0)
+                            i = vertSize - numberOfEdges;
                     }
-                    if (i == 0)
-                        i = vertSize - numberOfEdges;
                 }
 
                 for (int i = cell3D.cellVerticies.size() - numberOfEdges - 1; i < cell3D.cellVerticies.size() - 1; i++) {

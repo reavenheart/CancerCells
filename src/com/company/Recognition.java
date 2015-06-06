@@ -29,8 +29,8 @@ public class Recognition {
         objects = new ArrayList<CellObject>();
     }
 
-    public BufferedImage watershed(BufferedImage image) {
-   // public ArrayList<CellObject> watershed(BufferedImage image) {
+    //public BufferedImage watershed(BufferedImage image) {
+    public ArrayList<CellObject> watershed(BufferedImage image) {
         //CreateTmp();
         //CreateTemp();
 
@@ -143,9 +143,9 @@ public class Recognition {
             e.printStackTrace();
         }
 
-        return result;
+        //return result;
 
-        //return objects;
+        return objects;
 
     }
 
