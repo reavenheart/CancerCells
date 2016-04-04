@@ -14,12 +14,75 @@ import java.util.ArrayList;
 public class Main {
 
     public static void main(String[] args) {
-        File input = new File("assets/first-pic.jpg");
+        File input = new File("assets/02.JPG");
+        File input2 = new File("assets/02-3.JPG");
         //File input = new File("assets/example01.jpg");
         //File input2 = new File("assets/result2.jpg");
         try {
             BufferedImage image = ImageIO.read(input);
 
+            image = new Median().countMedian(image, 5);
+            image = new BoxBlur().blur(image, 5, 3);
+            image = new Median().countMedian(image, 5);
+            new AutoLevels().cutBackground(image);
+            image = new AutoLevels().countLevels(image);
+
+            BufferedImage image2 = ImageIO.read(input2);
+            image = new Multiply().calculate(image, image2);
+
+            /*
+            image = new BoxBlur().blur(image, 5, 3);
+            image = new Median().countMedian(image, 5);
+            image = new Contrast().countContrast(image, 1.2f);
+            new AutoLevels().cutBackgroundWithLevels(image, 20);
+*/
+            /*
+            BufferedImage image2 = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
+            Graphics g = image2.getGraphics();
+            g.drawImage(image, 0, 0, null);
+            g.dispose();
+            */
+
+            //image = new BoxBlur().blur(image, 5, 3);
+            //image = new Median().countMedian(image, 5);
+            //image = new EuclidianDistance().countEuclidianDistance(image);
+
+            File output2 = new File("assets/02-1-2.jpg");
+            ImageIO.write(image, "jpg", output2);
+
+            //image2 = new Multiply().calculate(image, image2);
+            /*
+            image2 = new BoxBlur().blurWithScale(image2,7,3);
+            image2 = new BoxBlur().blur(image2, 5, 3);
+            image2 = new Contrast().countContrast(image2, 0f);
+            new AutoLevels().countLevels(image2);
+            image2 = new Invert().invert(image2);
+            */
+            //output2 = new File("assets/02-4.jpg");
+            //ImageIO.write(image2, "jpg", output2);
+
+            //image = new Recognition().watershed(image);
+            //File output = new File("assets/02-2.jpg");
+            //ImageIO.write(image, "jpg", output);
+            /*
+            new AutoLevels().cutBackgroundWithLevels(image, 90);
+            image = new BoxBlur().blur(image, 5, 3);
+            image = new Median().countMedian(image, 5);
+            image = new AutoLevels().countLevels(image);
+            image = new Contrast().countContrast(image, 50);
+            new AutoLevels().cutBackground(image);
+            image = new BoxBlur().blur(image, 5, 3);
+            image = new Binarization().countBinarization(image, 100);
+            image = new EuclidianDistance().countEuclidianDistance(image);
+
+            File output2 = new File("assets/03-1.jpg");
+            ImageIO.write(image, "jpg", output2);
+
+            image = new Recognition().watershed(image);
+            File output = new File("assets/04-1.jpg");
+            ImageIO.write(image, "jpg", output);
+
+            /*
             BufferedImage image2 = new BoxBlur().blurWithScale(image, 3, 3);
 
             File output2 = new File("assets/result0001.jpg");

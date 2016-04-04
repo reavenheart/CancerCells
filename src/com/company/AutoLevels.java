@@ -173,9 +173,7 @@ public class AutoLevels {
         }
     }
 
-    public void cutBackgroundWithLevels(BufferedImage image) {
-
-        int minPercent = 50;
+    public void cutBackgroundWithLevels(BufferedImage image, int minPercent) {
 
         width = image.getWidth();
         height = image.getHeight();
@@ -282,5 +280,77 @@ public class AutoLevels {
         }
 
         image = countLevels(image);
+    }
+
+    /**
+     *
+     * @param image
+     * @param channel 0=red, 1=green, 2-blue, 3=rgb
+     * @return maxValue
+     */
+    public int getMaxValue(BufferedImage image, int channel) {
+        width = image.getWidth();
+        height = image.getHeight();
+
+        int maxValue = 0;
+
+        for (int i = 0; i < height; i++)
+        {
+            for (int j = 0; j < width; j++)
+            {
+                Color c = new Color(image.getRGB(j,i));
+
+                if (channel == 0)
+                    if (c.getRed() > maxValue)
+                        maxValue = c.getRed();
+                if (channel == 1)
+                    if (c.getGreen() > maxValue)
+                        maxValue = c.getGreen();
+                if (channel == 2)
+                    if (c.getBlue() > maxValue)
+                        maxValue = c.getBlue();
+                if (channel == 3)
+                    if ((c.getRed() + c.getGreen() + c.getBlue())/3 > maxValue)
+                        maxValue = (c.getRed() + c.getGreen() + c.getBlue())/3;
+            }
+        }
+
+        return maxValue;
+    }
+
+    /**
+     *
+     * @param image
+     * @param channel 0=red, 1=green, 2-blue, 3=rgb
+     * @return minValue
+     */
+    public int getMinValue(BufferedImage image, int channel) {
+        width = image.getWidth();
+        height = image.getHeight();
+
+        int minValue = 0;
+
+        for (int i = 0; i < height; i++)
+        {
+            for (int j = 0; j < width; j++)
+            {
+                Color c = new Color(image.getRGB(j,i));
+
+                if (channel == 0)
+                    if (c.getRed() < minValue)
+                        minValue = c.getRed();
+                if (channel == 1)
+                    if (c.getGreen() < minValue)
+                        minValue = c.getGreen();
+                if (channel == 2)
+                    if (c.getBlue() < minValue)
+                        minValue = c.getBlue();
+                if (channel == 3)
+                    if ((c.getRed() + c.getGreen() + c.getBlue())/3 < minValue)
+                        minValue = (c.getRed() + c.getGreen() + c.getBlue())/3;
+            }
+        }
+
+        return minValue;
     }
 }
