@@ -1,4 +1,4 @@
-rgb = imread('binary-test01.bmp');
+rgb = imread('binary-red.bmp');
 I = rgb2gray(rgb);
 imshow(I)
 

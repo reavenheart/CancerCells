@@ -14,14 +14,13 @@ import java.util.ArrayList;
 public class Main {
 
     public static void main(String[] args) {
-        File input = new File("assets/quick.bmp");
+        File input = new File("assets/first-pic.jpg");
         //File input = new File("assets/example01.jpg");
         //File input2 = new File("assets/result2.jpg");
         try {
             BufferedImage image = ImageIO.read(input);
 
-            /*
-            BufferedImage image2 = new BoxBlur().blurWithScale(image, 10, 3);
+            BufferedImage image2 = new BoxBlur().blurWithScale(image, 3, 3);
 
             File output2 = new File("assets/result0001.jpg");
             ImageIO.write(image2, "jpg", output2);
@@ -44,6 +43,7 @@ public class Main {
             BufferedImage sobel = new Sobel().countSobel(image);
             File output = new File("assets/result5.jpg");
             ImageIO.write(sobel, "jpg", output);
+            sobel = new Median().countMedian(sobel, 3);
             new EdgeDetection().saveDividedChannels(sobel);
 
             sobel = new MathMorphology().useMorphology(sobel);
@@ -69,40 +69,66 @@ public class Main {
             //output = new File("assets/result4.bmp");
             //ImageIO.write(image, "bmp", output);
 
-            */
 
+            image = new Median().countMedian(image, 3);
+            image = new AutoLevels().countLevels(image);
 
-
-            BufferedImage imageRedCores = new ChannelDivider().getOneChannel(image, false, false, true);
-            //BufferedImage imageRedCores = new GreyScale().countGreyScale(image);
-            File output = new File("assets/result-red.jpg");
+            BufferedImage imageRedCores = new ChannelDivider().getOneChannel(image, true, false, false);
+            BufferedImage imageBlueCores = new ChannelDivider().getOneChannel(image, false, false, true);
+            //BufferedImage imageShells =  new ChannelDivider().getOneChannel(image, false, true, false);
+            BufferedImage imageShells = new GreyScale().countGreyScale(image);
+            output = new File("assets/result-red.jpg");
             ImageIO.write(imageRedCores, "jpg", output);
 
             new AutoLevels().cutBackgroundWithLevels(imageRedCores);
+            new AutoLevels().cutBackgroundWithLevels(imageBlueCores);
+            new AutoLevels().cutBackgroundWithLevels(imageShells);
+
             imageRedCores = new MathMorphology().useMorphology(imageRedCores);
+            imageBlueCores = new MathMorphology().useMorphology(imageBlueCores);
+            imageShells = new MathMorphology().useMorphology(imageShells);
 
             imageRedCores = new Median().countMedian(imageRedCores, 3);
+            imageBlueCores = new Median().countMedian(imageBlueCores, 3);
+            imageShells = new Median().countMedian(imageShells, 3);
 
-            output = new File("assets/result-red-cutted.jpg");
-            ImageIO.write(imageRedCores, "jpg", output);
+            output = new File("assets/result-shells-cutted.jpg");
+            ImageIO.write(imageShells, "jpg", output);
 
             imageRedCores = new Binarization().countBinarization(imageRedCores, 10);
-
-
             imageRedCores = new MathMorphology().countErosion(imageRedCores, 5);
             imageRedCores = new MathMorphology().countDilatation(imageRedCores, 5);
-
             imageRedCores = new Median().countMedian(imageRedCores, 3);
+
+            imageBlueCores = new Binarization().countBinarization(imageBlueCores, 10);
+            imageBlueCores = new MathMorphology().countErosion(imageBlueCores, 5);
+            imageBlueCores = new MathMorphology().countDilatation(imageBlueCores, 5);
+            imageBlueCores = new Median().countMedian(imageBlueCores, 3);
+
+            imageShells = new Binarization().countBinarization(imageShells, 10);
+            imageShells = new MathMorphology().countErosion(imageShells, 5);
+            imageShells = new MathMorphology().countDilatation(imageShells, 5);
+            imageShells = new Median().countMedian(imageShells, 3);
 
             //new AutoLevels().cutBackgroundWithLevels(imageRedCores);
 
-            output = new File("assets/result-red-cutted-binary.jpg");
-            ImageIO.write(imageRedCores, "jpg", output);
+            //output = new File("assets/result-red-cutted-binary.jpg");
+            //ImageIO.write(imageRedCores, "jpg", output);
 
             imageRedCores = new EuclidianDistance().countEuclidianDistance(imageRedCores);
 
-            output = new File("assets/binary-test01.bmp");
+            output = new File("assets/binary-red.bmp");
             ImageIO.write(imageRedCores, "bmp", output);
+
+            imageBlueCores = new EuclidianDistance().countEuclidianDistance(imageBlueCores);
+
+            output = new File("assets/binary-blue.bmp");
+            ImageIO.write(imageBlueCores, "bmp", output);
+
+            imageShells = new EuclidianDistance().countEuclidianDistance(imageShells);
+
+            output = new File("assets/binary-shells.bmp");
+            ImageIO.write(imageShells, "bmp", output);
 
             //imageRedCores = new MathMorphology().countErosion(imageRedCores, 5);
             //imageRedCores = new MathMorphology().countDilatation(imageRedCores, 5);
@@ -112,9 +138,26 @@ public class Main {
             output = new File("assets/binary-test02.bmp");
             ImageIO.write(imageRedCores, "bmp", output);
 
+            //ArrayList<CellObject> cells = new Recognition().watershed(imageRedCores);
+            //new Exporter3D().exportData(cells, image.getWidth(), image.getHeight(), true, false, false);
+
+            //cells = new Recognition().watershed(imageBlueCores);
+            //new Exporter3D().exportData(cells, image.getWidth(), image.getHeight(), false, false, true);
+
+            //cells = new Recognition().watershed(imageShells);
+            //new Exporter3D().exportData(cells, image.getWidth(), image.getHeight(), false, true, false);
+
             imageRedCores = new Recognition().watershed(imageRedCores);
             output = new File("assets/result-red.jpg");
             ImageIO.write(imageRedCores, "jpg", output);
+
+            imageBlueCores = new Recognition().watershed(imageBlueCores);
+            output = new File("assets/result-blue.jpg");
+            ImageIO.write(imageBlueCores, "jpg", output);
+
+            imageShells = new Recognition().watershed(imageShells);
+            output = new File("assets/result-shells.jpg");
+            ImageIO.write(imageShells, "jpg", output);
 
             /*
             BufferedImage imageBlueCores = new ChannelDivider().getOneChannel(image, false, false, true);
