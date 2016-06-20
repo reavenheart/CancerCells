@@ -8,10 +8,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created by Denis on 11.04.2015.
@@ -25,15 +22,17 @@ public class Recognition {
     private ArrayList<CellObject> OuterBoundaries = new ArrayList<CellObject>();
     private ArrayList<CellObject> Boundaries = new ArrayList<CellObject>();
 
+    private int zIndex = 0;
+
     public Recognition() {
         objects = new ArrayList<CellObject>();
     }
 
-    public BufferedImage watershed(BufferedImage image) {
-    //public ArrayList<CellObject> watershed(BufferedImage image) {
+    //public BufferedImage watershed(BufferedImage image) {
+    public ArrayList<CellObject> watershed(BufferedImage image, int zIndex, boolean isBinary) {
         //CreateTmp();
         //CreateTemp();
-
+        this.zIndex = zIndex;
         width = image.getWidth();
         height = image.getHeight();
 
@@ -46,11 +45,15 @@ public class Recognition {
         BufferedImage temp3 = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
         temp3.setData(temp2.getData());
 
-        int MaxHue = FindMaxHue(temp);
-        int MinHue = FindMinHue(temp);
+        int MaxHue = 1;
+        int MinHue = 0;
+        if(!isBinary) {
+            MaxHue = FindMaxHue(temp);
+            MinHue = FindMinHue(temp);
+            temp2 = new Binarization().countBinarization(temp, MinHue+10);
+        }
         //temp2 = new Median().countMedian(temp2, 3);
         //CountGauss(5, 3, matrixR);
-        temp2 = new Binarization().countBinarization(temp, MinHue+10);
         countRecognition(temp2);
         optimizeObjects();
         countArea();
@@ -143,9 +146,9 @@ public class Recognition {
             e.printStackTrace();
         }
 
-        return result;
+        //return result;
 
-        //return objects;
+        return objects;
 
     }
 
@@ -265,9 +268,17 @@ public class Recognition {
     }
 
     private void optimizeObjects() {
+        long allPoints = 0;
+        for (int i = 0; i < objects.size(); i++)
+            allPoints += objects.get(i).getPoints().size();
+
+        allPoints /= objects.size();
+
+        allPoints *= 0.7f;
+
         for (int i = 0; i < objects.size(); i++)
         {
-            if (objects.get(i).getPoints().size() < 40)
+            if (objects.get(i).getPoints().size() < allPoints)
             {
                 objects.remove(objects.get(i));
                 i--;
@@ -313,6 +324,7 @@ public class Recognition {
     {
         CellObject obj = new CellObject();
 
+        obj.setzIndex(zIndex);
         Point firstPoint = new Point(x, y);
         Point newPoint = new Point();
         Point prevPoint = new Point();
@@ -537,4 +549,28 @@ public class Recognition {
         return hue;
     }
 
+    public void deleteCopies(ArrayList<CellObject> cells) {
+
+        for (int i = cells.size() - 1; i >= 0; i--) {
+
+            CellObject cell01 = cells.get(i);
+
+            for (int j = i; j >= 0; j--) {
+                CellObject cell02 = cells.get(j);
+
+                if (cell02.intersects(cell01) && cell01.getzIndex() != cell02.getzIndex()) {
+                    if (cell02.getArea() <= cell01.getArea()) {
+                        cells.remove(j);
+                    }
+                    else {
+                        cells.remove(cell01);
+                        break;
+                    }
+                }
+            }
+
+            if (i > cells.size())
+                i = cells.size();
+        }
+    }
 }

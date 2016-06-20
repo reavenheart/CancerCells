@@ -8,11 +8,13 @@ import java.util.ArrayList;
  */
 public class Exporter3D {
 
-    private int numberOfEdges = 24;
+    private int numberOfEdges = 16;
 
     private int zEdges;
 
     private int lastIndex;
+
+    private float zIndex = 0;
 
     public void exportData(ArrayList<CellObject> objects, int width, int height, boolean isRed, boolean isGreen, boolean isBlue) {
 
@@ -44,7 +46,9 @@ public class Exporter3D {
 
             float stepAngle = 360 / numberOfEdges;
 
-            float edgePos = 0;
+            zIndex = -(cell.getzIndex()-1) * 10;
+
+            float edgePos = zIndex;
 
             float aproxRadius = 0;
 
@@ -134,7 +138,7 @@ public class Exporter3D {
                         SimpleVertex3D vertex = new SimpleVertex3D();
                         vertex.x = cell3D.cellVerticies.get(k).x;
                         vertex.y = cell3D.cellVerticies.get(k).y;
-                        vertex.z = cell3D.cellVerticies.get(k).z;
+                        vertex.z = zIndex + cell3D.cellVerticies.get(k).z;
 
                         tempArray.add(vertex);
                     }
@@ -143,7 +147,7 @@ public class Exporter3D {
 
                         vertex.x = vertex.x - (vertex.x - center.getX()) * (scale3);
                         vertex.y = vertex.y - (vertex.y - center.getY()) * (scale3);
-                        vertex.z = edgePos;
+                        vertex.z = edgePos + zIndex;
 
                         vertex.index = cell3D.giveVertexIndex();
                         lastIndex = vertex.index;
@@ -156,7 +160,7 @@ public class Exporter3D {
 
                     vertex.x = center.getX();
                     vertex.y = center.getY();
-                    vertex.z = aproxRadius;
+                    vertex.z = aproxRadius + zIndex;
 
                     vertex.index = cell3D.giveVertexIndex();
                     lastIndex = vertex.index;
@@ -216,7 +220,7 @@ public class Exporter3D {
 
                     vertex.x = cell3D.cellVerticies.get(i).x;
                     vertex.y = cell3D.cellVerticies.get(i).y;
-                    vertex.z = -cell3D.cellVerticies.get(i).z;
+                    vertex.z = zIndex-(-zIndex+cell3D.cellVerticies.get(i).z);
 
                     vertex.normal.x = cell3D.cellVerticies.get(i).normal.x;
                     vertex.normal.y = cell3D.cellVerticies.get(i).normal.y;
@@ -345,11 +349,11 @@ public class Exporter3D {
         PrintWriter writer = null;
         try {
             if (isRed)
-                writer = new PrintWriter("assets/red.obj", "UTF-8");
+                writer = new PrintWriter("assets/Output/red.obj", "UTF-8");
             else if (isGreen)
-                writer = new PrintWriter("assets/green.obj", "UTF-8");
+                writer = new PrintWriter("assets/Output/green.obj", "UTF-8");
             else if (isBlue)
-                writer = new PrintWriter("assets/blue.obj", "UTF-8");
+                writer = new PrintWriter("assets/Output/blue.obj", "UTF-8");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (UnsupportedEncodingException e) {
@@ -363,12 +367,14 @@ public class Exporter3D {
                 writer.println("v " + vertex.x + " " + vertex.y + " " + vertex.z);
             }
 
+        /*
         writer.println("# List of vertex normals in (x,y,z) form; normals might not be unit vectors.");
 
         for (SimpleCellObject3D cell : cells)
             for (SimpleVertex3D vertex : cell.cellVerticies) {
                 writer.println("vn " + vertex.normal.x + " " + vertex.normal.y + " " + vertex.normal.z);
         }
+        */
 
         for (SimpleCellObject3D cell : cells)
             for (SimpleTriangle3D triangle : cell.cellTriangles) {
